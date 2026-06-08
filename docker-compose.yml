@@ -1,0 +1,9 @@
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: barber@123
+      POSTGRES_DB: Barber
+    ports:
+      - "5433:5432"
