@@ -12,7 +12,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark mx-autp mx-auto max-w-150 border">
+    <html lang="en" className="dark mx-auto max-w-150 border">
       <body className="flex min-h-full flex-col">{children}</body>
     </html>
   );
