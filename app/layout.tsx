@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import ScrollHandler from "./_components/effects/scroll-handler";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -12,8 +13,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark mx-auto max-w-150 border">
-      <body className="flex min-h-full flex-col">{children}</body>
+    <html lang="en" className="dark mx-auto max-w-120 border">
+      <body>
+        <ScrollHandler />
+        {children}
+      </body>
     </html>
   );
 }
