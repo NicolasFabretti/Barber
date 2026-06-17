@@ -1,3 +1,4 @@
+import ServiceComponent from "@/app/_components/service-item";
 import { Button } from "@/app/_components/ui/button";
 import { db } from "@/app/_lib/prisma";
 import { ChevronLeftIcon, MapPinIcon, MenuIcon, StarIcon } from "lucide-react";
@@ -65,6 +66,14 @@ export default async function BarbershopPage({ params }: BarbershopPageProps) {
       <div className="border-t border-b border-solid p-5">
         <h3 className="mb-2 text-sm font-bold text-gray-400">SOBRE NÓS</h3>
         <p>{barbershop.description}</p>
+      </div>
+
+      {/*SERVICE-ITEM*/}
+      <div className="mt-5 px-5">
+        <h3 className="mb-3 text-sm font-bold text-gray-400">SERVIÇOS</h3>
+        {barbershop.services.map((item) => (
+          <ServiceComponent key={item.id} service={item} />
+        ))}
       </div>
     </>
   );

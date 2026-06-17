@@ -13,7 +13,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark mx-auto max-w-120 border">
+    <html lang="en" className="dark mx-auto max-w-130">
       <body>
         <ScrollHandler />
         {children}
