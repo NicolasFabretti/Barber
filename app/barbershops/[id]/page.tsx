@@ -1,3 +1,4 @@
+import PhoneItem from "@/app/_components/phone-item";
 import ServiceComponent from "@/app/_components/service-item";
 import { Button } from "@/app/_components/ui/button";
 import { db } from "@/app/_lib/prisma";
@@ -26,7 +27,6 @@ export default async function BarbershopPage({ params }: BarbershopPageProps) {
   if (!barbershop) {
     return notFound();
   }
-  console.log(barbershop.services);
 
   return (
     <>
@@ -69,10 +69,17 @@ export default async function BarbershopPage({ params }: BarbershopPageProps) {
       </div>
 
       {/*SERVICE-ITEM*/}
-      <div className="mt-5 px-5">
+      <div className="mt-5 mb-5 px-5">
         <h3 className="mb-3 text-sm font-bold text-gray-400">SERVIÇOS</h3>
         {barbershop.services.map((item) => (
           <ServiceComponent key={item.id} service={item} />
+        ))}
+      </div>
+      {/* PHONE */}
+      <h1 className="border-t px-5 pt-5">Contato</h1>
+      <div>
+        {barbershop.phones.map((phones) => (
+          <PhoneItem key={phones} phone={phones} />
         ))}
       </div>
     </>

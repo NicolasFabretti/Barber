@@ -3,7 +3,6 @@ import { Header } from "./_components/header";
 import { Button } from "./_components/ui/button";
 import { Input } from "./_components/ui/input";
 import Image from "next/image";
-import { Card, CardContent } from "./_components/ui/card";
 import { db } from "./_lib/prisma";
 import BarbershopItem from "./_components/barbershop_item";
 import { quickSearchOptions } from "./_constants/search";
@@ -81,15 +80,6 @@ export default async function Home() {
           <BarbershopItem key={barber.id} barberProps={barber} />
         ))}
       </div>
-
-      {/* FOOTER */}
-      <footer className="mt-5">
-        <Card className="px-3 py-5">
-          <CardContent>
-            <p className="text-gray-400">@2023 Copyright FSW Barber</p>
-          </CardContent>
-        </Card>
-      </footer>
     </div>
   );
 }

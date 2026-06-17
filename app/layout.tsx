@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import ScrollHandler from "./_components/effects/scroll-handler";
+import { Toaster } from "./_components/ui/sonner";
+import { Card, CardContent } from "./_components/ui/card";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -17,7 +19,15 @@ export default function RootLayout({
       <body>
         <ScrollHandler />
         {children}
+        <Toaster />
       </body>
+      <footer className="mt-5">
+        <Card className="px-3 py-5">
+          <CardContent>
+            <p className="text-gray-400">@2023 Copyright FSW Barber</p>
+          </CardContent>
+        </Card>
+      </footer>
     </html>
   );
 }

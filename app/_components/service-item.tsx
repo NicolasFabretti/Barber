@@ -1,14 +1,14 @@
-import { Barbershop } from "@prisma/client";
+import { BarbershopService } from "@prisma/client";
 import Image from "next/image";
 import { Button } from "./ui/button";
 
 interface ServiceProps {
-  service: Barbershop;
+  service: BarbershopService;
 }
 
 const ServiceComponent = ({ service }: ServiceProps) => {
   return (
-    <div className="flex h-38 w-full rounded-2xl border bg-[#2020203f] p-3">
+    <div className="mb-5 flex h-38 w-full rounded-2xl border bg-[#2020203f] p-3">
       {/*IMAGE */}
       <Image
         src={service.imageUrl}
