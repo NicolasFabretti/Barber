@@ -1,6 +1,8 @@
 import PhoneItem from "@/app/_components/phone-item";
 import ServiceComponent from "@/app/_components/service-item";
+import SideBar from "@/app/_components/sideBar";
 import { Button } from "@/app/_components/ui/button";
+import { Sheet, SheetTrigger } from "@/app/_components/ui/sheet";
 import { db } from "@/app/_lib/prisma";
 import { ChevronLeftIcon, MapPinIcon, MenuIcon, StarIcon } from "lucide-react";
 import Image from "next/image";
@@ -44,8 +46,16 @@ export default async function BarbershopPage({ params }: BarbershopPageProps) {
           </Button>
         </Link>
 
-        <Button className="absolute top-4 right-4" variant="secondary">
-          <MenuIcon />
+        <Button
+          className="absolute top-4 right-4 cursor-pointer"
+          variant="secondary"
+        >
+          <Sheet>
+            <SheetTrigger>
+              <MenuIcon />
+            </SheetTrigger>
+            <SideBar />
+          </Sheet>
         </Button>
       </div>
 
