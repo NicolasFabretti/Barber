@@ -40,16 +40,14 @@ export default async function BarbershopPage({ params }: BarbershopPageProps) {
           height={100}
           className="h-80 w-full"
         />
-        <Link href="/" className="absolute top-4 left-4">
-          <Button variant="secondary">
-            <ChevronLeftIcon />
-          </Button>
-        </Link>
 
-        <Button
-          className="absolute top-4 right-4 cursor-pointer"
-          variant="secondary"
-        >
+        <Button variant="secondary" asChild>
+          <Link href="/" className="absolute top-4 left-4">
+            <ChevronLeftIcon />
+          </Link>
+        </Button>
+
+        <Button className="absolute top-4 right-4 z-1000" variant="secondary">
           <Sheet>
             <SheetTrigger>
               <MenuIcon />
