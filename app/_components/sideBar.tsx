@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "./ui/button";
 import { CalendarIcon, HomeIcon, LogInIcon, LogOutIcon } from "lucide-react";
 import { SheetContent, SheetHeader } from "./ui/sheet";
@@ -12,57 +14,71 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "./ui/dialog";
+import { signIn, signOut, useSession } from "next-auth/react";
+import { Avatar, AvatarImage } from "./ui/avatar";
 
 const SideBar = () => {
+  const { data } = useSession();
+  const handleLoginWithGoogleClick = () => signIn("google");
+  const handleLogoutClick = () => signOut();
+
   return (
     <SheetContent className="bg-[#080808] px-5">
       <SheetHeader className="pl-0 font-bold">Menu</SheetHeader>
 
       <div className="mb-2 flex items-center gap-3">
-        <h1 className="text-lg font-bold">Olá, faça seu login!</h1>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button size="icon">
-              <LogInIcon />
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="w-[80%] bg-[#141414]">
-            <DialogHeader className="flex items-center">
-              <DialogTitle>Faça Login na plataforma</DialogTitle>
-              <DialogDescription>
-                Conecte-se usando sua conta do Google
-              </DialogDescription>
-              <Button
-                variant="secondary"
-                className="flex h-10 w-full cursor-pointer gap-2"
-              >
-                <Image
-                  src="/vector.svg"
-                  width={18}
-                  height={18}
-                  alt="Google Image"
-                />
-                <Image
-                  src="/Button.svg"
-                  width={50}
-                  height={18}
-                  alt="Google Image"
-                  className="mt-0.5"
-                />
-              </Button>
-            </DialogHeader>
-          </DialogContent>
-        </Dialog>
+        {data?.user ? (
+          <>
+            <Avatar>
+              <AvatarImage src={data.user.image ?? ""}></AvatarImage>
+            </Avatar>
 
-        {/* Avatar 
-        <Avatar size="lg">
-          <AvatarImage src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=880&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" />
-        </Avatar>
-        <div>
-          <h1 className="text-lg font-bold">Nicolas Fabretti</h1>
-          <p className="text-xs">emailteste@gmail.com</p>
-        </div>
-        */}
+            <div>
+              <h1 className="text-lg font-bold">{data.user.name}</h1>
+              <p className="text-xs">{data.user.email}</p>
+            </div>
+          </>
+        ) : (
+          <>
+            <Dialog>
+              <div className="flex w-full items-center justify-between">
+                <h1 className="text-lg font-bold">Olá, faça seu login!</h1>
+                <Button size="icon" asChild className="cursor-pointer">
+                  <DialogTrigger>
+                    <LogInIcon />
+                  </DialogTrigger>
+                </Button>
+              </div>
+              <DialogContent className="w-[80%] bg-[#141414]">
+                <DialogHeader className="flex items-center">
+                  <DialogTitle>Faça Login na plataforma</DialogTitle>
+                  <DialogDescription>
+                    Conecte-se usando sua conta do Google
+                  </DialogDescription>
+                  <Button
+                    variant="secondary"
+                    className="flex h-10 w-full cursor-pointer gap-2"
+                    onClick={handleLoginWithGoogleClick}
+                  >
+                    <Image
+                      src="/vector.svg"
+                      width={18}
+                      height={18}
+                      alt="Google Image"
+                    />
+                    <Image
+                      src="/Button.svg"
+                      width={50}
+                      height={18}
+                      alt="Google Image"
+                      className="mt-0.5"
+                    />
+                  </Button>
+                </DialogHeader>
+              </DialogContent>
+            </Dialog>
+          </>
+        )}
       </div>
 
       {/* Home and Booking button */}
@@ -97,7 +113,11 @@ const SideBar = () => {
 
       {/* Logout */}
       <div>
-        <Button className="cursor-pointer" variant="ghost">
+        <Button
+          className="cursor-pointer"
+          variant="ghost"
+          onClick={handleLogoutClick}
+        >
           <LogOutIcon />
           Sair da conta
         </Button>

@@ -3,6 +3,7 @@ import "./globals.css";
 import ScrollHandler from "./effects/scroll-handler";
 import { Toaster } from "./_components/ui/sonner";
 import Footer from "./_components/footer";
+import AuthProvider from "./_providers/auth";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -17,11 +18,13 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark mx-auto max-w-130">
       <body>
-        <ScrollHandler />
-        {children}
-        <Toaster />
+        <AuthProvider>
+          <ScrollHandler />
+          {children}
+          <Toaster />
+          <Footer />
+        </AuthProvider>
       </body>
-      <Footer />
     </html>
   );
 }
