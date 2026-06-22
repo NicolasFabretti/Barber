@@ -47,24 +47,27 @@ export default async function BarbershopPage({ params }: BarbershopPageProps) {
           </Link>
         </Button>
 
-        <Button className="absolute top-4 right-4 z-1000" variant="secondary">
-          <Sheet>
-            <SheetTrigger>
+        <Sheet>
+          <SheetTrigger>
+            <Button
+              className="absolute top-4 right-4 z-1000 cursor-pointer"
+              variant="secondary"
+            >
               <MenuIcon />
-            </SheetTrigger>
-            <SideBar />
-          </Sheet>
-        </Button>
+            </Button>
+          </SheetTrigger>
+          <SideBar />
+        </Sheet>
       </div>
 
       {/* NAME AND REVIEWS */}
-      <div className="mt-5 flex flex-col gap-1 pl-5">
+      <div className="flex flex-col gap-1 pl-5">
         <h1 className="mb-2 text-xl font-bold">{barbershop.name}</h1>
         <div className="flex items-center gap-2">
           <MapPinIcon className="text-primary" />
           <p>{barbershop.address}</p>
         </div>
-        <div className="mb-5 flex gap-2">
+        <div className="mb-7 flex gap-2">
           <StarIcon className="fill-primary text-primary" />
           <p>5,0 (499 avaliações)</p>
         </div>

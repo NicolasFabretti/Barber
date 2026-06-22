@@ -1,12 +1,11 @@
-import { SearchIcon } from "lucide-react";
 import { Header } from "./_components/header";
 import { Button } from "./_components/ui/button";
-import { Input } from "./_components/ui/input";
 import Image from "next/image";
 import { db } from "./_lib/prisma";
 import BarbershopItem from "./_components/barbershop_item";
 import { quickSearchOptions } from "./_constants/search";
 import BookintItem from "./_components/booking-item";
+import Search from "./_components/search";
 
 export default async function Home() {
   const recommended = await db.barbershop.findMany({});
@@ -19,21 +18,18 @@ export default async function Home() {
     <div>
       {/*Header*/}
       <Header />
-      <div className="p-8">
+      <div className="py-5">
         <h2 className="text-xl font-bold">Olá, Nicolas!</h2>
         <p>Terça-feira, 09 de Junho</p>
       </div>
 
       {/*BUSCA*/}
-      <div className="mx-auto flex h-20 justify-between gap-2 px-8 pb-7">
-        <Input placeholder="busque aqui" className="h-full" />
-        <Button className="h-full w-15">
-          <SearchIcon />
-        </Button>
+      <div className="mb-8">
+        <Search />
       </div>
 
       {/*BUSCA RAPIDA*/}
-      <div className="mx-8 flex gap-3 overflow-auto pb-2">
+      <div className="flex gap-3 overflow-auto pb-2">
         {quickSearchOptions.map((option) => (
           <Button
             className="h-12 w-35 gap-2"
@@ -58,7 +54,7 @@ export default async function Home() {
           alt="Banner"
           width={600}
           height={10}
-          className="mx-auto w-full rounded-xl px-8"
+          className="mx-auto w-full rounded-xl"
         />
       </div>
 

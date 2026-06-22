@@ -20,9 +20,11 @@ export default function RootLayout({
       <body>
         <AuthProvider>
           <ScrollHandler />
-          {children}
-          <Toaster />
-          <Footer />
+          <div className="flex h-full flex-col">
+            <div className="flex-1">{children}</div>
+            <Toaster />
+            <Footer />
+          </div>
         </AuthProvider>
       </body>
     </html>
