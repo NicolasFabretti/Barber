@@ -2,7 +2,7 @@
 
 import { Button } from "./ui/button";
 import { CalendarIcon, HomeIcon, LogInIcon, LogOutIcon } from "lucide-react";
-import { SheetContent, SheetHeader } from "./ui/sheet";
+import { SheetClose, SheetContent, SheetHeader } from "./ui/sheet";
 import { quickSearchOptions } from "../_constants/search";
 import Image from "next/image";
 import Link from "next/link";
@@ -90,7 +90,10 @@ const SideBar = () => {
           </Link>
         </Button>
 
-        <Button className="mb-5 justify-start px-5" variant="ghost">
+        <Button
+          className="mb-5 cursor-pointer justify-start px-5"
+          variant="ghost"
+        >
           <CalendarIcon />
           Agendamentos
         </Button>
@@ -99,15 +102,19 @@ const SideBar = () => {
       {/* QuickSearch Buttons */}
       <div className="flex flex-col items-start gap-5 border-b border-solid pb-5">
         {quickSearchOptions.map((items) => (
-          <Button key={items.title} variant="ghost" className="">
-            <Image
-              height={18}
-              width={18}
-              alt={items.title}
-              src={items.imageUrl}
-            />
-            {items.title}
-          </Button>
+          <SheetClose key={items.title} asChild>
+            <Button variant="ghost" className="cursor-pointer" asChild>
+              <Link href={`/barbershops?service=${items.title}`}>
+                <Image
+                  height={18}
+                  width={18}
+                  alt={items.title}
+                  src={items.imageUrl}
+                />
+                {items.title}
+              </Link>
+            </Button>
+          </SheetClose>
         ))}
       </div>
 

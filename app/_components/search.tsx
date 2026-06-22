@@ -23,7 +23,7 @@ const Search = () => {
   });
   const router = useRouter();
   const handleSubmit = (data: z.infer<typeof formSchema>) => {
-    router.push(`/barbershops?search=${encodeURIComponent(data.search)}`);
+    router.push(`/barbershops?title=${encodeURIComponent(data.search)}`);
   };
   return (
     <>

@@ -6,6 +6,7 @@ import BarbershopItem from "./_components/barbershop_item";
 import { quickSearchOptions } from "./_constants/search";
 import BookintItem from "./_components/booking-item";
 import Search from "./_components/search";
+import Link from "next/link";
 
 export default async function Home() {
   const recommended = await db.barbershop.findMany({});
@@ -35,14 +36,17 @@ export default async function Home() {
             className="h-12 w-35 gap-2"
             variant="secondary"
             key={option.title}
+            asChild
           >
-            <Image
-              src={option.imageUrl}
-              width={16}
-              height={16}
-              alt={option.title}
-            />
-            {option.title}
+            <Link href={`barbershops?title=${option.title}`}>
+              <Image
+                src={option.imageUrl}
+                width={16}
+                height={16}
+                alt={option.title}
+              />
+              {option.title}
+            </Link>
           </Button>
         ))}
       </div>

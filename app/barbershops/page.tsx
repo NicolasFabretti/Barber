@@ -5,18 +5,38 @@ import { db } from "../_lib/prisma";
 
 interface BarbershopPageProps {
   searchParams: Promise<{
-    search?: string;
+    title?: string;
+    service?: string;
   }>;
 }
 
 const BarbershopPage = async ({ searchParams }: BarbershopPageProps) => {
-  const { search } = await searchParams;
-  const findBarber = await db.barbershop.findMany({
+  const { title } = await searchParams;
+  const { service } = await searchParams;
+  const dbBarber = await db.barbershop.findMany({
     where: {
-      name: {
-        contains: search,
-        mode: "insensitive",
-      },
+      OR: [
+        title
+          ? {
+              name: {
+                contains: title,
+                mode: "insensitive",
+              },
+            }
+          : {},
+        service
+          ? {
+              services: {
+                some: {
+                  name: {
+                    contains: service,
+                    mode: "insensitive",
+                  },
+                },
+              },
+            }
+          : {},
+      ],
     },
   });
   return (
@@ -27,10 +47,10 @@ const BarbershopPage = async ({ searchParams }: BarbershopPageProps) => {
       </div>
 
       <h2 className="mt-6 mb-3 text-xs font-bold text-gray-400 uppercase">
-        resultado para &quot;{search || null}&quot;
+        resultado para &quot;{title || service || null}&quot;
       </h2>
       <div className="grid grid-cols-2 gap-4">
-        {findBarber.map((barbershop) => (
+        {dbBarber.map((barbershop) => (
           <BarbershopItem key={barbershop.id} barberProps={barbershop} />
         ))}
       </div>
