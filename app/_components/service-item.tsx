@@ -1,5 +1,5 @@
 "use client";
-import { Barbershop, BarbershopService } from "@prisma/client";
+import { Barbershop, BarbershopService, User } from "@prisma/client";
 import Image from "next/image";
 import { Button } from "./ui/button";
 import {
@@ -13,9 +13,13 @@ import {
 import { Calendar } from "./ui/calendar";
 import { ptBR } from "date-fns/locale";
 import { useState } from "react";
+
 import { TIME_LIST } from "../_constants/timeList";
 import { Card, CardContent } from "./ui/card";
-import { format } from "date-fns";
+import { format, set } from "date-fns";
+import { createBooking } from "../_actions/create-booking";
+import { useSession } from "next-auth/react";
+import { toast } from "sonner";
 
 interface ServiceComponentProps {
   service: BarbershopService;
@@ -26,6 +30,9 @@ const ServiceComponent = ({ service, barbershop }: ServiceComponentProps) => {
   {
     /* STATE */
   }
+  const { data } = useSession(); // Chamando o user logado em CALLBACK em route.ts em nextAuth
+  console.log(data); //confirmando que o id esta vindo
+
   const [selectedDay, setSelectedDay] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectetime] = useState<string | undefined>(
     undefined,
@@ -38,6 +45,26 @@ const ServiceComponent = ({ service, barbershop }: ServiceComponentProps) => {
   const handleTimeSelect = (time: string) => {
     setSelectetime(time);
   };
+
+  const handleCreateBooking = async () => {
+    try {
+      if (!selectedDay || !selectedTime) return;
+      const hour = Number(selectedTime.split(":")[0]); // ["09"]
+      const minute = Number(selectedTime.split(":")[1]); // ["30"]
+      const newDate = set(selectedDay, { minutes: minute, hours: hour });
+
+      await createBooking({
+        serviceId: service.id,
+        userId: (data?.user as User).id,
+        date: newDate,
+      });
+      toast.success("Reserva criada com sucesso!");
+    } catch (error) {
+      console.error(error);
+      toast.error("erro ao criar a reserva!");
+    }
+  };
+
   return (
     <div className="mb-5 flex h-38 w-full rounded-2xl border bg-[#2020203f] p-3">
       {/*IMAGE */}
@@ -130,7 +157,13 @@ const ServiceComponent = ({ service, barbershop }: ServiceComponentProps) => {
                 )}
               </div>
               <SheetFooter>
-                <Button className="cursor-pointer">Confirmar</Button>
+                <Button
+                  disabled={!selectedDay || !selectedTime}
+                  onClick={handleCreateBooking}
+                  className="cursor-pointer"
+                >
+                  Confirmar
+                </Button>
               </SheetFooter>
             </SheetContent>
           </Sheet>
