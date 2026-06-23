@@ -1,12 +1,43 @@
-import { BarbershopService } from "@prisma/client";
+"use client";
+import { Barbershop, BarbershopService } from "@prisma/client";
 import Image from "next/image";
 import { Button } from "./ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "./ui/sheet";
+import { Calendar } from "./ui/calendar";
+import { ptBR } from "date-fns/locale";
+import { useState } from "react";
+import { TIME_LIST } from "../_constants/timeList";
+import { Card, CardContent } from "./ui/card";
+import { format } from "date-fns";
 
-interface ServiceProps {
+interface ServiceComponentProps {
   service: BarbershopService;
+  barbershop: Pick<Barbershop, "name">;
 }
 
-const ServiceComponent = ({ service }: ServiceProps) => {
+const ServiceComponent = ({ service, barbershop }: ServiceComponentProps) => {
+  {
+    /* STATE */
+  }
+  const [selectedDay, setSelectedDay] = useState<Date | undefined>(undefined);
+  const [selectedTime, setSelectetime] = useState<string | undefined>(
+    undefined,
+  );
+
+  const handleDateSelect = (date: Date | undefined) => {
+    setSelectedDay(date);
+  };
+
+  const handleTimeSelect = (time: string) => {
+    setSelectetime(time);
+  };
   return (
     <div className="mb-5 flex h-38 w-full rounded-2xl border bg-[#2020203f] p-3">
       {/*IMAGE */}
@@ -25,14 +56,84 @@ const ServiceComponent = ({ service }: ServiceProps) => {
         </div>
 
         {/*PRICE AND BOOK BUTTON */}
-        <div className="flex justify-between">
+        <div className="flex items-center justify-between">
           <h1>
             {Intl.NumberFormat("pt-BR", {
               style: "currency",
               currency: "BRL",
             }).format(Number(service.price))}
           </h1>
-          <Button>Reservar</Button>
+          {/*BOOK BUTTON*/}
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="secondary" className="cursor-pointer" size="lg">
+                Reservar
+              </Button>
+            </SheetTrigger>
+            <SheetContent className="bg-[#080808] px-5">
+              <SheetHeader>
+                <SheetTitle>Fazer reserva</SheetTitle>
+              </SheetHeader>
+              <div className="py-5">
+                <Calendar
+                  mode="single"
+                  locale={ptBR}
+                  selected={selectedDay}
+                  onSelect={handleDateSelect}
+                  className="w-full border-b border-solid"
+                ></Calendar>
+                {selectedDay && (
+                  <div className="overflow-x-none flex gap-3 overflow-hidden">
+                    {TIME_LIST.map((time) => (
+                      <Button
+                        variant={
+                          selectedTime === time ? "default" : "secondary"
+                        }
+                        className="mt-5 cursor-pointer rounded-2xl"
+                        key={time}
+                        onClick={() => handleTimeSelect(time)}
+                      >
+                        {time}
+                      </Button>
+                    ))}
+                  </div>
+                )}
+
+                {selectedDay && selectedTime && (
+                  <Card className="mt-5">
+                    <CardContent className="flex flex-col gap-3">
+                      <div className="flex justify-between">
+                        <h2>{service.name}</h2>
+                        <h2>
+                          {Intl.NumberFormat("pt-BR", {
+                            style: "currency",
+                            currency: "BRL",
+                          }).format(Number(service.price))}
+                        </h2>
+                      </div>
+                      <div className="flex justify-between">
+                        <h2>Data</h2>
+                        <h2>
+                          {format(selectedDay, "d 'de' MMMM", { locale: ptBR })}
+                        </h2>
+                      </div>
+                      <div className="flex justify-between">
+                        <h2>Horário</h2>
+                        <h2>{selectedTime}</h2>
+                      </div>
+                      <div className="flex justify-between">
+                        <h2>Barbearia</h2>
+                        <h2>{barbershop.name}</h2>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+              <SheetFooter>
+                <Button className="cursor-pointer">Confirmar</Button>
+              </SheetFooter>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
     </div>

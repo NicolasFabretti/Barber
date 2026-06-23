@@ -30,7 +30,7 @@ export default async function Home() {
       </div>
 
       {/*BUSCA RAPIDA*/}
-      <div className="flex gap-3 overflow-auto pb-2">
+      <div className="overflow-x-none flex gap-3 overflow-hidden pb-2">
         {quickSearchOptions.map((option) => (
           <Button
             className="h-12 w-35 gap-2"
@@ -67,7 +67,7 @@ export default async function Home() {
 
       {/* RECOMENDADOS */}
       <h2 className="py-2">Recomendados</h2>
-      <div className="flex gap-4 overflow-auto px-1 pb-2">
+      <div className="overflow-x-none flex gap-4 overflow-hidden px-1 pb-2">
         {recommended.map((barber) => (
           <BarbershopItem key={barber.id} barberProps={barber} />
         ))}
@@ -75,7 +75,7 @@ export default async function Home() {
 
       {/* POPULARES */}
       <h2 className="py-2">Populares</h2>
-      <div className="flex gap-4 overflow-auto px-1 pb-2">
+      <div className="overflow-x-none flex gap-4 overflow-hidden px-1 pb-2">
         {popularBarber.map((barber) => (
           <BarbershopItem key={barber.id} barberProps={barber} />
         ))}
