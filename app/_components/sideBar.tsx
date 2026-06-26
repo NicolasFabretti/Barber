@@ -6,20 +6,14 @@ import { SheetClose, SheetContent, SheetHeader } from "./ui/sheet";
 import { quickSearchOptions } from "../_constants/search";
 import Image from "next/image";
 import Link from "next/link";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "./ui/dialog";
-import { signIn, signOut, useSession } from "next-auth/react";
+import { Dialog, DialogContent, DialogTrigger } from "./ui/dialog";
+import { signOut, useSession } from "next-auth/react";
 import { Avatar, AvatarImage } from "./ui/avatar";
+import SignDialog from "./sign-in-dialog";
 
 const SideBar = () => {
   const { data } = useSession();
-  const handleLoginWithGoogleClick = () => signIn("google");
+
   const handleLogoutClick = () => signOut();
 
   return (
@@ -49,32 +43,8 @@ const SideBar = () => {
                   </DialogTrigger>
                 </Button>
               </div>
-              <DialogContent className="w-[80%] bg-[#141414]">
-                <DialogHeader className="flex items-center">
-                  <DialogTitle>Faça Login na plataforma</DialogTitle>
-                  <DialogDescription>
-                    Conecte-se usando sua conta do Google
-                  </DialogDescription>
-                  <Button
-                    variant="secondary"
-                    className="flex h-10 w-full cursor-pointer gap-2"
-                    onClick={handleLoginWithGoogleClick}
-                  >
-                    <Image
-                      src="/vector.svg"
-                      width={18}
-                      height={18}
-                      alt="Google Image"
-                    />
-                    <Image
-                      src="/Button.svg"
-                      width={50}
-                      height={18}
-                      alt="Google Image"
-                      className="mt-0.5"
-                    />
-                  </Button>
-                </DialogHeader>
+              <DialogContent className="w-[70%] bg-[#141414]">
+                <SignDialog />
               </DialogContent>
             </Dialog>
           </>
@@ -119,16 +89,18 @@ const SideBar = () => {
       </div>
 
       {/* Logout */}
-      <div>
-        <Button
-          className="cursor-pointer"
-          variant="ghost"
-          onClick={handleLogoutClick}
-        >
-          <LogOutIcon />
-          Sair da conta
-        </Button>
-      </div>
+      {data?.user && (
+        <div>
+          <Button
+            className="cursor-pointer"
+            variant="ghost"
+            onClick={handleLogoutClick}
+          >
+            <LogOutIcon />
+            Sair da conta
+          </Button>
+        </div>
+      )}
     </SheetContent>
   );
 };
