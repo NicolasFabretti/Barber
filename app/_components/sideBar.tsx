@@ -65,7 +65,7 @@ const SideBar = () => {
           variant="ghost"
         >
           <CalendarIcon />
-          Agendamentos
+          <Link href="/booking">Agendamentos</Link>
         </Button>
       </div>
 

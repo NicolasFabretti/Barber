@@ -1,5 +1,5 @@
 "use client";
-import { Barbershop, BarbershopService, Booking, User } from "@prisma/client";
+import { Barbershop, BarbershopService, Booking } from "@prisma/client";
 import Image from "next/image";
 import { Button } from "./ui/button";
 import {
@@ -94,7 +94,6 @@ const ServiceComponent = ({ service, barbershop }: ServiceComponentProps) => {
 
       await createBooking({
         serviceId: service.id,
-        userId: (data?.user as User).id,
         date: newDate,
       });
       handleBookingSheetOpenChange();

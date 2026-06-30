@@ -1,35 +1,57 @@
+import { Prisma } from "@prisma/client";
 import { Avatar, AvatarImage } from "./ui/avatar";
 import { Badge } from "./ui/badge";
 import { Card, CardContent } from "./ui/card";
+import { format, isFuture } from "date-fns";
+import { ptBR } from "date-fns/locale";
+
+interface BookingItemProps {
+  booking: Prisma.BookingGetPayload<{
+    include: {
+      service: {
+        include: {
+          barbershop: true;
+        };
+      };
+    };
+  }>;
+}
 
 // TODO receber agendamento como prop
-const BookintItem = () => {
+const BookingItem = ({ booking }: BookingItemProps) => {
+  const isConfirmed = isFuture(booking.date);
   return (
     <>
-      <h1 className="px-8 py-5 text-sm font-bold text-gray-400">
-        AGENDAMENTOS
-      </h1>
-      <Card>
+      <Card className="min-w-[90%] rounded-sm">
         <CardContent className="flex justify-between px-8">
           {/* ESQUERDA*/}
           <div className="flex flex-col justify-center gap-2">
             <div>
-              <Badge className="w-fit">Confirmado</Badge>
-              <h3>Corte de cabelo</h3>
+              <Badge
+                className="mb-2 w-fit"
+                variant={isConfirmed ? "default" : "secondary"}
+              >
+                {isConfirmed ? "Confirmado" : "Finalizado"}
+              </Badge>
+              <h3>{booking.service.name}</h3>
             </div>
 
-            <div className="">
-              <Avatar className="h-6 w-6">
-                <AvatarImage src="https://utfs.io/f/c97a2dc9-cf62-468b-a851-bfd2bdde775f-16p.png" />
-                <p className="text-sm whitespace-nowrap">Barbearia FSW</p>
+            <div>
+              <Avatar className="flex h-6 w-6 items-center">
+                <AvatarImage src={booking.service.barbershop.imageUrl} />
+                <p className="ml-2 text-sm whitespace-nowrap">
+                  {booking.service.barbershop.name}
+                </p>
               </Avatar>
             </div>
           </div>
           {/* DIREITA*/}
           <div className="flex flex-col items-center justify-center border-l border-solid pl-5">
-            <p>Junho</p>
-            <p>5</p>
-            <p>2024</p>
+            <p className="text-sm capitalize">
+              {format(booking.date, "MMMM", { locale: ptBR })}
+            </p>
+            <p>{format(booking.date, "dd", { locale: ptBR })}</p>
+            <p>{format(booking.date, "HH:mm", { locale: ptBR })}</p>
           </div>
         </CardContent>
       </Card>
@@ -37,4 +59,4 @@ const BookintItem = () => {
   );
 };
 
-export default BookintItem;
+export default BookingItem;

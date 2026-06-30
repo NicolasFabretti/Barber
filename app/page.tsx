@@ -7,14 +7,40 @@ import { quickSearchOptions } from "./_constants/search";
 import BookintItem from "./_components/booking-item";
 import Search from "./_components/search";
 import Link from "next/link";
+import { getServerSession } from "next-auth";
+import { authOptions } from "./_lib/auth";
 
 export default async function Home() {
+  const session = await getServerSession(authOptions);
   const recommended = await db.barbershop.findMany({});
   const popularBarber = await db.barbershop.findMany({
     orderBy: {
       name: "desc",
     },
   });
+
+  const confimedBookings = session?.user
+    ? await db.booking.findMany({
+        where: {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          userId: (session?.user as any).id,
+          date: {
+            gte: new Date(),
+          },
+        },
+        include: {
+          service: {
+            include: {
+              barbershop: true,
+            },
+          },
+        },
+        orderBy: {
+          date: "asc",
+        },
+      })
+    : [];
+
   return (
     <div>
       {/*Header*/}
@@ -61,9 +87,13 @@ export default async function Home() {
           className="mx-auto w-full rounded-xl"
         />
       </div>
-
-      {/* AGENDAMENTO */}
-      <BookintItem />
+      <h1 className="text-gray-400">Agendamentos</h1>
+      <div className="overflow-x-none flex gap-5 overflow-hidden">
+        {/* AGENDAMENTO */}
+        {confimedBookings.map((booking) => (
+          <BookintItem key={booking.id} booking={booking} />
+        ))}
+      </div>
 
       {/* RECOMENDADOS */}
       <h2 className="py-2">Recomendados</h2>
