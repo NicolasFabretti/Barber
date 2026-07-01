@@ -13,7 +13,6 @@ import SignDialog from "./sign-in-dialog";
 
 const SideBar = () => {
   const { data } = useSession();
-
   const handleLogoutClick = () => signOut();
 
   return (
@@ -60,13 +59,34 @@ const SideBar = () => {
           </Link>
         </Button>
 
-        <Button
-          className="mb-5 cursor-pointer justify-start px-5"
-          variant="ghost"
-        >
-          <CalendarIcon />
-          <Link href="/booking">Agendamentos</Link>
-        </Button>
+        {data?.user ? (
+          <Button
+            asChild
+            variant="ghost"
+            className="my-1 cursor-pointer justify-start"
+          >
+            <Link href="/booking">
+              <CalendarIcon />
+              Agendamentos
+            </Link>
+          </Button>
+        ) : (
+          <Dialog>
+            <DialogTrigger
+              asChild
+              className="my-1 cursor-pointer justify-start"
+            >
+              <Button variant="ghost">
+                <CalendarIcon />
+                Agendamentos
+              </Button>
+            </DialogTrigger>
+
+            <DialogContent>
+              <SignDialog />
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       {/* QuickSearch Buttons */}
