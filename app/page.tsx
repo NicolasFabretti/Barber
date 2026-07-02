@@ -92,7 +92,10 @@ export default async function Home() {
         />
       </div>
       <h1 className="text-gray-400">Agendamentos</h1>
-      <div className="overflow-x-none flex gap-5 overflow-hidden">
+      <div
+        className="flex gap-5 overflow-x-auto scroll-smooth"
+        style={{ WebkitOverflowScrolling: "touch" }}
+      >
         {/* AGENDAMENTO */}
         {confimedBookings.map((booking) => (
           <BookintItem key={booking.id} booking={booking} />
@@ -101,7 +104,10 @@ export default async function Home() {
 
       {/* RECOMENDADOS */}
       <h2 className="py-2">Recomendados</h2>
-      <div className="overflow-x-none flex gap-4 overflow-hidden px-1 pb-2">
+      <div
+        className="flex gap-4 overflow-x-auto scroll-smooth px-1 pb-2"
+        style={{ WebkitOverflowScrolling: "touch" }}
+      >
         {recommended.map((barber) => (
           <BarbershopItem key={barber.id} barberProps={barber} />
         ))}
@@ -109,7 +115,10 @@ export default async function Home() {
 
       {/* POPULARES */}
       <h2 className="py-2">Populares</h2>
-      <div className="overflow-x-none flex gap-4 overflow-hidden px-1 pb-2">
+      <div
+        className="flex gap-4 overflow-x-auto scroll-smooth px-1 pb-2"
+        style={{ WebkitOverflowScrolling: "touch" }}
+      >
         {popularBarber.map((barber) => (
           <BarbershopItem key={barber.id} barberProps={barber} />
         ))}
