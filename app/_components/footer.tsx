@@ -5,7 +5,7 @@ const Footer = () => {
     <footer className="mt-5">
       <Card className="px-3 py-5">
         <CardContent>
-          <p className="text-gray-400">@2023 Copyright FSW Barber</p>
+          <p className="text-gray-400">@2026 Copyright FSW Barber</p>
         </CardContent>
       </Card>
     </footer>
