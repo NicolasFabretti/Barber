@@ -51,21 +51,28 @@ const Bookings = async () => {
     <>
       <Header />
       <h1 className="my-3 text-xl font-bold">Agendamentos</h1>
-      <h1 className="mb-2 text-sm text-gray-400">CONFIRMADOS</h1>
-      <div className="flex flex-col gap-3">
-        {confirmedBookings.map((booking) => (
-          <BookingItem key={booking.id} booking={booking} />
-        ))}
-      </div>
-      <div className="flex flex-col gap-3">
-        <h1 className="mt-5 mb-2 text-sm text-gray-400">FINALIZADOS</h1>
-        {concluedBookings.map((booking) => (
-          <BookingItem
-            key={booking.id}
-            booking={JSON.parse(JSON.stringify(booking))}
-          />
-        ))}
-      </div>
+      {confirmedBookings.length === 0 && concluedBookings.length === 0 && (
+        <h1>Você ainda não possui agendamentos.</h1>
+      )}
+      {confirmedBookings.length > 0 && (
+        <div className="flex flex-col gap-3">
+          <h1 className="mb-2 text-sm text-gray-400">CONFIRMADOS</h1>
+          {confirmedBookings.map((booking) => (
+            <BookingItem key={booking.id} booking={booking} />
+          ))}
+        </div>
+      )}
+      {concluedBookings.length > 0 && (
+        <div className="flex flex-col gap-3">
+          <h1 className="mt-5 mb-2 text-sm text-gray-400">FINALIZADOS</h1>
+          {concluedBookings.map((booking) => (
+            <BookingItem
+              key={booking.id}
+              booking={JSON.parse(JSON.stringify(booking))}
+            />
+          ))}
+        </div>
+      )}
     </>
   );
 };

@@ -29,6 +29,7 @@ import {
 import { deleteBooking } from "../_actions/delete-booking";
 import { toast } from "sonner";
 import { useState } from "react";
+import BookingSumary from "./booking-sumary";
 
 interface BookingItemProps {
   booking: Prisma.BookingGetPayload<{
@@ -133,33 +134,13 @@ const BookingItem = ({ booking }: BookingItemProps) => {
           ) : (
             <Badge variant="secondary">Finalizado</Badge>
           )}
-          <Card>
-            <CardContent className="flex h-30 flex-col justify-between">
-              <div className="flex justify-between font-bold">
-                <h1>{booking.service.name}</h1>
-                <h1>
-                  {Intl.NumberFormat("pt-BR", {
-                    style: "currency",
-                    currency: "BRL",
-                  }).format(Number(booking.service.price))}
-                </h1>
-              </div>
-              <div className="flex justify-between text-gray-400">
-                <h1>Data</h1>
-                <h1>
-                  {format(booking.date, "dd 'de' MMMM", { locale: ptBR })}
-                </h1>
-              </div>
-              <div className="flex justify-between text-gray-400">
-                <h1>Horário</h1>
-                <h1>{format(booking.date, "HH:mm")}</h1>
-              </div>
-              <div className="flex justify-between text-gray-400">
-                <h1>Barbearia</h1>
-                <h1>{booking.service.barbershop.name}</h1>
-              </div>
-            </CardContent>
-          </Card>
+
+          <BookingSumary
+            barbershop={booking.service.barbershop}
+            service={booking.service}
+            selectedDate={booking.date}
+          />
+
           {booking.service.barbershop.phones.map((phone) => (
             <PhoneItem key={phone} phone={phone} />
           ))}

@@ -48,7 +48,7 @@ export default async function BarbershopPage({ params }: BarbershopPageProps) {
         </Button>
 
         <Sheet>
-          <SheetTrigger>
+          <SheetTrigger asChild>
             <Button
               className="absolute top-4 right-4 z-1000 cursor-pointer"
               variant="secondary"
@@ -93,8 +93,8 @@ export default async function BarbershopPage({ params }: BarbershopPageProps) {
       {/* PHONE */}
       <h1 className="border-t px-5 pt-5">Contato</h1>
       <div>
-        {barbershop.phones.map((phones) => (
-          <PhoneItem key={phones} phone={phones} />
+        {barbershop.phones.map((phones, index) => (
+          <PhoneItem key={index} phone={phones} />
         ))}
       </div>
     </>

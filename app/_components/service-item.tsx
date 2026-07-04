@@ -12,16 +12,16 @@ import {
 import { Calendar } from "./ui/calendar";
 import { ptBR } from "date-fns/locale";
 import { useEffect, useMemo, useState } from "react";
-
 import { TIME_LIST } from "../_constants/timeList";
-import { Card, CardContent } from "./ui/card";
-import { format, isPast, isToday, set } from "date-fns";
+import { isPast, isToday, set } from "date-fns";
 import { createBooking } from "../_actions/create-booking";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { getBooking } from "../_actions/get-booking";
 import { Dialog, DialogContent } from "./ui/dialog";
 import SignDialog from "./sign-in-dialog";
+import BookingSumary from "./booking-sumary";
+import { useRouter } from "next/navigation";
 
 interface ServiceComponentProps {
   service: BarbershopService;
@@ -30,6 +30,7 @@ interface ServiceComponentProps {
 
 const ServiceComponent = ({ service, barbershop }: ServiceComponentProps) => {
   const { data } = useSession(); // Chamando o user logado em CALLBACK em route.ts em nextAuth
+  const router = useRouter();
 
   const [selectedDay, setSelectedDay] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectetime] = useState<string | undefined>(
@@ -94,20 +95,29 @@ const ServiceComponent = ({ service, barbershop }: ServiceComponentProps) => {
   };
 
   console.log("dias agendados", dayBookings);
+  const selectedDate = useMemo(() => {
+    if (!selectedDay || !selectedTime) return;
+    return set(selectedDay, {
+      hours: Number(selectedTime?.split(":")[0]),
+      minutes: Number(selectedTime?.split(":")[1]),
+    });
+  }, [selectedDay, selectedTime]);
 
   const handleCreateBooking = async () => {
     try {
-      if (!selectedDay || !selectedTime) return;
-      const hour = Number(selectedTime.split(":")[0]); // ["09"]
-      const minute = Number(selectedTime.split(":")[1]); // ["30"]
-      const newDate = set(selectedDay, { minutes: minute, hours: hour });
+      if (!selectedDate) return;
 
       await createBooking({
         serviceId: service.id,
-        date: newDate,
+        date: selectedDate,
       });
       handleBookingSheetOpenChange();
-      toast.success("Reserva criada com sucesso!");
+      toast.success("Reserva criada com sucesso!", {
+        action: {
+          label: "Ver Agendamentos",
+          onClick: () => router.push("/booking"),
+        },
+      });
     } catch (error) {
       console.error(error);
       toast.error("erro ao criar a reserva!");
@@ -167,7 +177,7 @@ const ServiceComponent = ({ service, barbershop }: ServiceComponentProps) => {
             </Button>
             <SheetContent className="bg-[#080808] px-5">
               <SheetHeader>
-                <SheetTitle>Fazer reserva</SheetTitle>
+                <SheetTitle>Fazer reservar</SheetTitle>
               </SheetHeader>
               <div className="py-5">
                 <Calendar
@@ -202,34 +212,12 @@ const ServiceComponent = ({ service, barbershop }: ServiceComponentProps) => {
                   </div>
                 )}
 
-                {selectedDay && selectedTime && (
-                  <Card className="mt-5">
-                    <CardContent className="flex flex-col gap-3">
-                      <div className="flex justify-between">
-                        <h2>{service.name}</h2>
-                        <h2>
-                          {Intl.NumberFormat("pt-BR", {
-                            style: "currency",
-                            currency: "BRL",
-                          }).format(Number(service.price))}
-                        </h2>
-                      </div>
-                      <div className="flex justify-between">
-                        <h2>Data</h2>
-                        <h2>
-                          {format(selectedDay, "d 'de' MMMM", { locale: ptBR })}
-                        </h2>
-                      </div>
-                      <div className="flex justify-between">
-                        <h2>Horário</h2>
-                        <h2>{selectedTime}</h2>
-                      </div>
-                      <div className="flex justify-between">
-                        <h2>Barbearia</h2>
-                        <h2>{barbershop.name}</h2>
-                      </div>
-                    </CardContent>
-                  </Card>
+                {selectedDate && (
+                  <BookingSumary
+                    barbershop={barbershop}
+                    service={service}
+                    selectedDate={selectedDate}
+                  />
                 )}
               </div>
               <SheetFooter>
