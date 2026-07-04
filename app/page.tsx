@@ -91,14 +91,19 @@ export default async function Home() {
           className="mx-auto w-full rounded-xl"
         />
       </div>
-      <h1 className="text-gray-400">Agendamentos</h1>
+      <h1 className="text-gray-400">
+        {confimedBookings.length > 0 && <div>Agendamentos</div>}
+      </h1>
       <div
         className="flex gap-5 overflow-x-auto scroll-smooth"
         style={{ WebkitOverflowScrolling: "touch" }}
       >
         {/* AGENDAMENTO */}
         {confimedBookings.map((booking) => (
-          <BookintItem key={booking.id} booking={booking} />
+          <BookintItem
+            key={booking.id}
+            booking={JSON.parse(JSON.stringify(booking))}
+          />
         ))}
       </div>
 

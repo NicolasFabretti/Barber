@@ -85,8 +85,8 @@ export default async function BarbershopPage({ params }: BarbershopPageProps) {
         {barbershop.services.map((item) => (
           <ServiceComponent
             key={item.id}
-            service={item}
-            barbershop={barbershop}
+            service={JSON.parse(JSON.stringify(item))}
+            barbershop={JSON.parse(JSON.stringify(barbershop))}
           />
         ))}
       </div>
