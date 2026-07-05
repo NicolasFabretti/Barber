@@ -117,6 +117,7 @@ const ServiceComponent = ({ service, barbershop }: ServiceComponentProps) => {
           label: "Ver Agendamentos",
           onClick: () => router.push("/booking"),
         },
+        duration: 2500,
       });
     } catch (error) {
       console.error(error);
