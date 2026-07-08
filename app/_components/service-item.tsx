@@ -22,6 +22,8 @@ import { Dialog, DialogContent } from "./ui/dialog";
 import SignDialog from "./sign-in-dialog";
 import BookingSumary from "./booking-sumary";
 import { useRouter } from "next/navigation";
+import createPayment from "../_actions/create-payment";
+import getBookingStatus from "../_actions/get-booking-status";
 
 interface ServiceComponentProps {
   service: BarbershopService;
@@ -31,7 +33,6 @@ interface ServiceComponentProps {
 const ServiceComponent = ({ service, barbershop }: ServiceComponentProps) => {
   const { data } = useSession(); // Chamando o user logado em CALLBACK em route.ts em nextAuth
   const router = useRouter();
-
   const [selectedDay, setSelectedDay] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectetime] = useState<string | undefined>(
     undefined,
@@ -39,6 +40,11 @@ const ServiceComponent = ({ service, barbershop }: ServiceComponentProps) => {
   const [dayBookings, setDayBookings] = useState<Booking[]>([]);
   const [BookingSheetOpen, setBookingSheetOpen] = useState(false);
   const [openDialogSignin, setOpenDialogSignin] = useState(false);
+  const [paymentData, setPaymentData] = useState<{
+    qrCode?: string;
+    qrCodeBase64?: string;
+  } | null>(null);
+  const [bookingId, setBookingId] = useState<string | null>(null);
 
   const handleDateSelect = (date: Date | undefined) => {
     setSelectedDay(date);
@@ -75,6 +81,15 @@ const ServiceComponent = ({ service, barbershop }: ServiceComponentProps) => {
     });
   };
 
+  const handleBookingSheetOpenChange = () => {
+    setSelectedDay(undefined);
+    setSelectetime(undefined);
+    setDayBookings([]);
+    setPaymentData(null);
+    setBookingSheetOpen(false);
+    setBookingId(null);
+  };
+
   useEffect(() => {
     const fetch = async () => {
       if (!selectedDay) return;
@@ -87,14 +102,32 @@ const ServiceComponent = ({ service, barbershop }: ServiceComponentProps) => {
     fetch();
   }, [selectedDay, service.id]);
 
-  const handleBookingSheetOpenChange = () => {
-    setSelectedDay(undefined);
-    setSelectetime(undefined);
-    setDayBookings([]);
-    setBookingSheetOpen(false);
-  };
+  useEffect(() => {
+    if (!paymentData || !bookingId) return;
 
-  console.log("dias agendados", dayBookings);
+    const interval = setInterval(async () => {
+      const status = await getBookingStatus({ bookingId });
+
+      if (status === "APPROVED") {
+        clearInterval(interval);
+        toast.success("Reserva agendada com sucesso!", {
+          action: {
+            label: "Ver agendamentos",
+            onClick: () => router.push("/bookings"),
+          },
+        });
+        handleBookingSheetOpenChange();
+      }
+
+      if (status === "REJECTED") {
+        clearInterval(interval);
+        toast.error("Pagamento não aprovado. Tente novamente.");
+      }
+    }, 3000); // checa a cada 3 segundos
+
+    return () => clearInterval(interval);
+  }, [paymentData, bookingId, router]);
+
   const selectedDate = useMemo(() => {
     if (!selectedDay || !selectedTime) return;
     return set(selectedDay, {
@@ -103,28 +136,25 @@ const ServiceComponent = ({ service, barbershop }: ServiceComponentProps) => {
     });
   }, [selectedDay, selectedTime]);
 
+  //CRIAR BOOKING
   const handleCreateBooking = async () => {
     try {
       if (!selectedDate) return;
 
-      await createBooking({
+      const booking = await createBooking({
         serviceId: service.id,
         date: selectedDate,
       });
-      handleBookingSheetOpenChange();
-      toast.success("Reserva criada com sucesso!", {
-        action: {
-          label: "Ver Agendamentos",
-          onClick: () => router.push("/booking"),
-        },
-        duration: 2500,
-      });
+
+      setBookingId(booking.id); // guarda pro polling usar
+
+      const result = await createPayment({ bookingId: booking.id });
+      setPaymentData(result);
     } catch (error) {
       console.error(error);
       toast.error("erro ao criar a reserva!");
     }
   };
-
   const handleBookingclick = () => {
     if (data?.user) {
       return setBookingSheetOpen(true);
@@ -178,57 +208,99 @@ const ServiceComponent = ({ service, barbershop }: ServiceComponentProps) => {
             </Button>
             <SheetContent className="bg-[#080808] px-5">
               <SheetHeader>
-                <SheetTitle>Fazer reservar</SheetTitle>
+                <SheetTitle>
+                  {paymentData ? "Pagamento pix" : "Fazer reserva"}
+                </SheetTitle>
               </SheetHeader>
-              <div className="py-5">
-                <Calendar
-                  mode="single"
-                  locale={ptBR}
-                  selected={selectedDay}
-                  onSelect={handleDateSelect}
-                  className="w-full border-b border-solid"
-                  disabled={{ before: new Date() }}
-                ></Calendar>
+              {!paymentData ? (
+                <div className="py-5">
+                  <Calendar
+                    mode="single"
+                    locale={ptBR}
+                    selected={selectedDay}
+                    onSelect={handleDateSelect}
+                    className="w-full border-b border-solid"
+                    disabled={{ before: new Date() }}
+                  ></Calendar>
 
-                {selectedDay && (
-                  <div className="overflow-x-none flex gap-3 overflow-hidden">
-                    {timeList.length > 0 ? (
-                      timeList.map((time) => (
-                        <Button
-                          variant={
-                            selectedTime === time ? "default" : "secondary"
-                          }
-                          className="mt-5 cursor-pointer rounded-2xl"
-                          key={time}
-                          onClick={() => handleTimeSelect(time)}
-                        >
-                          {time}
-                        </Button>
-                      ))
-                    ) : (
-                      <p className="text-xs">
-                        Não há horários disponíveis para este dia.
+                  {selectedDay && (
+                    <div className="overflow-x-none flex gap-3 overflow-hidden">
+                      {timeList.length > 0 ? (
+                        timeList.map((time) => (
+                          <Button
+                            variant={
+                              selectedTime === time ? "default" : "secondary"
+                            }
+                            className="mt-5 cursor-pointer rounded-2xl"
+                            key={time}
+                            onClick={() => handleTimeSelect(time)}
+                          >
+                            {time}
+                          </Button>
+                        ))
+                      ) : (
+                        <p className="text-xs">
+                          Não há horários disponíveis para este dia.
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {selectedDate && (
+                    <BookingSumary
+                      barbershop={barbershop}
+                      service={service}
+                      selectedDate={selectedDate}
+                    />
+                  )}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center gap-4 py-5">
+                  {paymentData.qrCodeBase64 && (
+                    <Image
+                      src={`data:image/png;base64,${paymentData.qrCodeBase64}`}
+                      alt="QR Code Pix"
+                      width={220}
+                      height={220}
+                    />
+                  )}
+
+                  {paymentData.qrCode && (
+                    <div className="w-full">
+                      <p className="mb-1 text-xs text-gray-400">
+                        Pix copia e cola:
                       </p>
-                    )}
-                  </div>
-                )}
+                      <textarea
+                        readOnly
+                        value={paymentData.qrCode}
+                        className="w-full rounded-md border border-gray-700 bg-[#111] p-2 text-xs"
+                        rows={4}
+                      />
+                      <Button
+                        variant="secondary"
+                        className="mt-2 w-full cursor-pointer"
+                        onClick={() => {
+                          navigator.clipboard.writeText(paymentData.qrCode!);
+                          toast.success("Código copiado!");
+                        }}
+                      >
+                        Copiar código
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
 
-                {selectedDate && (
-                  <BookingSumary
-                    barbershop={barbershop}
-                    service={service}
-                    selectedDate={selectedDate}
-                  />
-                )}
-              </div>
               <SheetFooter>
-                <Button
-                  disabled={!selectedDay || !selectedTime}
-                  onClick={handleCreateBooking}
-                  className="cursor-pointer"
-                >
-                  Confirmar
-                </Button>
+                {!paymentData && (
+                  <Button
+                    disabled={!selectedDay || !selectedTime}
+                    onClick={handleCreateBooking}
+                    className="cursor-pointer"
+                  >
+                    Confirmar
+                  </Button>
+                )}
               </SheetFooter>
             </SheetContent>
           </Sheet>

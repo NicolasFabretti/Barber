@@ -11,14 +11,22 @@ interface CreateBookingParams {
 }
 
 export const createBooking = async (params: CreateBookingParams) => {
-  const user = await getServerSession(authOptions);
-  if (!user) {
-    return new Error("Usuário não atenticado");
+  const session = await getServerSession(authOptions);
+
+  if (!session) {
+    throw new Error("Usuário não autenticado");
   }
-  await db.booking.create({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    data: { ...params, userId: (user.user as any).id },
+
+  const booking = await db.booking.create({
+    data: {
+      ...params,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      userId: (session.user as any).id,
+    },
   });
+
   revalidatePath("/barbershops/[id]");
   revalidatePath("/booking");
+
+  return booking;
 };
