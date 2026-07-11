@@ -187,7 +187,7 @@ const ServiceComponent = ({ service, barbershop }: ServiceComponentProps) => {
         toast.success("Reserva agendada com sucesso!", {
           action: {
             label: "Ver agendamentos",
-            onClick: () => router.push("/bookings"),
+            onClick: () => router.push("/booking"),
           },
         });
         resetBookingFlow();
