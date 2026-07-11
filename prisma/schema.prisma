@@ -89,6 +89,7 @@ model Booking {
   date      DateTime
   status    BookingStatus     @default(PENDING)
   paymentId String?
+  expiresAt DateTime?
   createdAt DateTime          @default(now())
   updatedAt DateTime          @updatedAt
   service   BarbershopService @relation(fields: [serviceId], references: [id])

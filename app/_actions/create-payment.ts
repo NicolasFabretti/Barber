@@ -1,8 +1,9 @@
 "use server";
 
-import { Payment } from "mercadopago";
+import { Order } from "mercadopago";
 import { db } from "../_lib/prisma";
 import { mercadoPago } from "../_lib/mercado-pago";
+import crypto from "crypto";
 
 interface CreatePixPaymentProps {
   bookingId: string;
@@ -10,81 +11,166 @@ interface CreatePixPaymentProps {
 
 const createPayment = async ({ bookingId }: CreatePixPaymentProps) => {
   const booking = await db.booking.findUnique({
-    where: {
-      id: bookingId,
-    },
-    include: {
-      service: true,
-      user: true,
-    },
+    where: { id: bookingId },
+    include: { service: true, user: true },
   });
+
   if (!booking) {
     throw new Error("Agendamento não encontrado.");
   }
 
-  const payment = new Payment(mercadoPago);
+  const order = new Order(mercadoPago);
 
-  const result = await payment.create({
+  const result = await order.create({
     body: {
-      transaction_amount: Number(booking.service.price),
-      description: booking.service.name,
-      payment_method_id: "pix",
-      payer: {
-        email:
-          process.env.NODE_ENV === "development"
-            ? "test_user_4187344111064142083@testuser.com"
-            : booking.user.email!,
-      },
+      type: "online",
+      processing_mode: "automatic",
+      total_amount: Number(booking.service.price).toFixed(2),
       external_reference: bookingId,
+      payer: {
+        email: booking.user.email!,
+      },
+      transactions: {
+        payments: [
+          {
+            amount: Number(booking.service.price).toFixed(2),
+            payment_method: {
+              id: "pix",
+              type: "bank_transfer",
+            },
+          },
+        ],
+      },
+    },
+    requestOptions: {
+      idempotencyKey: crypto.randomUUID(),
     },
   });
-  // Salva o vínculo entre o Booking e o pagamento do Mercado Pago
+
+  const paymentTransaction = result.transactions?.payments?.[0];
+
   await db.booking.update({
     where: { id: booking.id },
-    data: { paymentId: String(result.id) },
+    data: { paymentId: String(paymentTransaction?.id ?? result.id) },
   });
 
   return {
-    qrCode: result.point_of_interaction?.transaction_data?.qr_code,
-    qrCodeBase64: result.point_of_interaction?.transaction_data?.qr_code_base64,
+    qrCode: paymentTransaction?.payment_method?.qr_code,
+    qrCodeBase64: paymentTransaction?.payment_method?.qr_code_base64,
   };
 };
 
 export default createPayment;
 
-/* 1. result.point_of_interaction?.transaction_data
-Quando você cria um pagamento Pix na API do Mercado Pago, a resposta (result) vem com um monte de informações — status, valor, etc. Uma parte específica dessa resposta, point_of_interaction.transaction_data, é onde ficam os dados específicos do Pix: o QR Code e o código copia-e-cola.
-A resposta bruta do Mercado Pago tem essa forma (simplificada):
-json{
-  "id": 123456789,
-  "status": "pending",
-  "point_of_interaction": {
-    "transaction_data": {
-      "qr_code": "00020126580014br.gov.bcb.pix...",
-      "qr_code_base64": "iVBORw0KGgoAAAANSUhEUgAA..."
-    }
-  }
+/*
+Vamos destrinchar o create-payment.ts linha por linha, agora que sabemos que funciona.
+ts"use server";
+
+import { Order } from "mercadopago";
+import { db } from "../_lib/prisma";
+import { mercadoPago } from "../_lib/mercado-pago";
+import crypto from "crypto";
+
+"use server" — marca esse arquivo como Server Action, roda só no backend
+Order — a classe do SDK que representa a API de Orders (mais nova que Payment, é a que dá suporte a teste de Pix)
+mercadoPago — o client configurado com o Access Token (do app/_lib/mercado-pago.ts)
+crypto — módulo nativo do Node, usado só pra gerar um ID único (idempotencyKey)
+
+tsinterface CreatePixPaymentProps {
+  bookingId: string;
 }
-Os dois campos que interessam:
 
-qr_code → é o texto do Pix (o "copia e cola"). Você usaria isso num <textarea> pra o usuário copiar.
-qr_code_base64 → é a imagem do QR Code já pronta, codificada em base64. Você usa isso direto numa tag <img> (ou next/image) pra desenhar o QR na tela.
+const createPayment = async ({ bookingId }: CreatePixPaymentProps) => {
+  const booking = await db.booking.findUnique({
+    where: { id: bookingId },
+    include: { service: true, user: true },
+  });
 
-2. Por que o ?. (optional chaining)
-tsresult.point_of_interaction?.transaction_data?.qr_code
-Isso é uma proteção: se por algum motivo o Mercado Pago não devolver point_of_interaction (ex: erro parcial, ou pagamento com outro método), o código não quebra tentando acessar uma propriedade de undefined — em vez de dar erro, retorna undefined silenciosamente.
-3. O bloco do db.booking.update
-tsawait db.booking.update({
-  where: { id: booking.id },
-  data: { paymentId: String(result.id) },
-});
-Isso é o que liga o pagamento do Mercado Pago com a sua reserva no banco. Lembra do campo paymentId String? que você adicionou no schema? É aqui que ele é preenchido.
-Por que isso importa: quando o Mercado Pago mandar a notificação pro Webhook dizendo "o pagamento X foi aprovado", o Webhook vai saber qual Booking atualizar procurando no seu banco por paymentId: X. Sem esse vínculo salvo, não haveria como conectar as duas coisas.
-String(result.id) — o result.id vem como number da API do Mercado Pago, mas seu campo no Prisma é String?, então precisa converter.
-4. O return final
-tsreturn {
-  qrCode: result.point_of_interaction?.transaction_data?.qr_code,
-  qrCodeBase64: result.point_of_interaction?.transaction_data?.qr_code_base64,
+  if (!booking) {
+    throw new Error("Agendamento não encontrado.");
+  }
+
+Busca o booking no banco pelo ID recebido, trazendo junto o service (pra saber o preço) e o user (pro e-mail em produção)
+Se não encontrar, lança erro — protege contra bookingId inválido
+
+ts  const isTestMode = process.env.NODE_ENV === "development";
+
+NODE_ENV é definido automaticamente pelo Next.js: "development" quando roda npm run dev, "production" quando é deploy/build de produção
+Isso permite alternar o comportamento sem você precisar mudar código manualmente
+
+ts  const order = new Order(mercadoPago);
+
+Instancia o "cliente" da API de Orders, passando a configuração (token) que já criamos
+
+ts  const result = await order.create({
+    body: {
+      type: "online",
+      processing_mode: "automatic",
+
+type: "online" — único valor aceito pela API pra esse tipo de pagamento (obrigatório, sempre esse texto)
+processing_mode: "automatic" — processa a transação de uma vez só (existe também "manual", pra fluxos mais complexos que você não precisa agora)
+
+ts      total_amount: Number(booking.service.price).toFixed(2),
+
+booking.service.price vem do Prisma como tipo Decimal — Number() converte pra número puro, .toFixed(2) formata como string com 2 casas decimais (a API exige string, não number, nesse campo)
+
+ts      external_reference: bookingId,
+
+Um identificador seu, que você define — serve pra rastrear depois qual booking esse pagamento pertence (aparece de volta na consulta da ordem)
+
+ts      payer: isTestMode
+        ? {
+            email: "test_user_br@testuser.com",
+            first_name: "APRO",
+          }
+        : {
+            email: booking.user.email!,
+          },
+
+Em desenvolvimento: usa o e-mail de teste fixo documentado pela MP, e first_name: "APRO" — esse valor específico sinaliza "simule uma aprovação automática"
+Em produção: usa o e-mail real do usuário logado (booking.user.email! — o ! diz ao TypeScript "confio que não é null", já que seu User.email é opcional no schema)
+
+ts      transactions: {
+        payments: [
+          {
+            amount: Number(booking.service.price).toFixed(2),
+            payment_method: {
+              id: "pix",
+              type: "bank_transfer",
+            },
+          },
+        ],
+      },
+    },
+
+Estrutura obrigatória da API de Orders: mesmo tendo só um pagamento, ele fica dentro de um array payments: [...]
+payment_method.id: "pix" + type: "bank_transfer" — é assim que você especifica que quer Pix (Pix é tecnicamente categorizado como "transferência bancária" pelo Mercado Pago)
+
+ts    requestOptions: {
+      idempotencyKey: crypto.randomUUID(),
+    },
+  });
+
+idempotencyKey — obrigatório na API de Orders. Evita que, se a requisição for reenviada por engano (falha de rede, retry automático), o Mercado Pago crie dois pagamentos duplicados para a mesma ação. Cada chamada gera uma chave nova e aleatória.
+
+ts  const paymentTransaction = result.transactions?.payments?.[0];
+
+Navega até o primeiro (e único) pagamento dentro da resposta — a estrutura da API de Orders aninha tudo dentro de transactions.payments[], diferente da API de Payments antiga que retornava tudo "solto"
+
+ts  await db.booking.update({
+    where: { id: booking.id },
+    data: { paymentId: String(paymentTransaction?.id ?? result.id) },
+  });
+
+Salva o vínculo: paymentTransaction?.id é o ID do pagamento específico (ex: PAY01KX6YVFPTG5BQZD8VVHDTK62S) — é esse ID que vai aparecer depois na notificação do Webhook, então precisamos guardá-lo pra saber qual booking atualizar
+O ?? result.id é um fallback de segurança, caso paymentTransaction não exista por algum motivo
+
+ts  return {
+    qrCode: paymentTransaction?.payment_method?.qr_code,
+    qrCodeBase64: paymentTransaction?.payment_method?.qr_code_base64,
+  };
 };
-Isso é o que a Server Action devolve pro componente que a chamou — só os dois dados que o front-end realmente precisa pra desenhar a tela do Pix (o resto da resposta do Mercado Pago não interessa pro client).
-*/
+
+export default createPayment;
+
+Retorna só o que o front-end precisa: o texto do Pix e a imagem em base64 */
