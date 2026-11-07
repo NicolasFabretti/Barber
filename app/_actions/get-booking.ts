@@ -25,3 +25,6 @@ export const getBooking = async ({ date }: getBookingProps) => {
   });
   return bookings;
 };
+
+/*lte: Less than or equal, menor ou igual
+gte: greater than or equal, maior ou igual */

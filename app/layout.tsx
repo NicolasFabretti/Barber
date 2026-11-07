@@ -16,7 +16,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark mx-auto max-w-130">
+    <html lang="en" className="dark mx-auto">
       <body>
         <AuthProvider>
           <ScrollHandler />
